@@ -9,7 +9,6 @@ export default function StatusBar() {
   return (
     <>
       <div className="w-full h-12 bg-neutral-900 flex items-center gap-5 px-4 py-2">
-        <h1 className="text-lg font-bold">Memory Hierarchy Simulator</h1>
         <Button
           variant="outline"
           className="hover:cursor-pointer group relative"
