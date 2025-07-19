@@ -1,8 +1,5 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
-import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
-
 import {
   Card,
   CardContent,
@@ -17,91 +14,155 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { CartesianGrid, Legend, Line, LineChart, XAxis, YAxis } from "recharts";
 
-export const description = "A line chart with dots";
+export const description =
+  "CPI vs L1 Line Size for different memory generators";
 
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
+const cpiData = [
+  {
+    lineSize: "16 B",
+    Generator1: 1.45,
+    Generator2: 1.2,
+    Generator3: 1.8,
+    Generator4: 1.25,
+    Generator5: 1.6,
+  },
+  {
+    lineSize: "32 B",
+    Generator1: 1.25,
+    Generator2: 1.12,
+    Generator3: 1.75,
+    Generator4: 1.18,
+    Generator5: 1.45,
+  },
+  {
+    lineSize: "64 B",
+    Generator1: 1.18,
+    Generator2: 1.09,
+    Generator3: 1.73,
+    Generator4: 1.14,
+    Generator5: 1.35,
+  },
+  {
+    lineSize: "128 B",
+    Generator1: 1.17,
+    Generator2: 1.09,
+    Generator3: 1.71,
+    Generator4: 1.13,
+    Generator5: 1.3,
+  },
 ];
 
+// Map each generator to its label & CSS‑driven color
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--chart-1)",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "var(--chart-2)",
-  },
+  Generator1: { label: "Generator1", color: "var(--chart-1)" },
+  Generator2: { label: "Generator2", color: "var(--chart-2)" },
+  Generator3: { label: "Generator3", color: "var(--chart-3)" },
+  Generator4: { label: "Generator4", color: "var(--chart-4)" },
+  Generator5: { label: "Generator5", color: "var(--chart-5)" },
 } satisfies ChartConfig;
 
-export function ChartLineDots() {
+export function CpiLineChart() {
+  const datamax = cpiData.reduce(
+    (max, item) =>
+      Math.max(
+        max,
+        item.Generator1,
+        item.Generator2,
+        item.Generator3,
+        item.Generator4,
+        item.Generator5
+      ),
+
+    0
+  );
+  const datamin = cpiData.reduce(
+    (min, item) =>
+      Math.min(
+        min,
+        item.Generator1,
+        item.Generator2,
+        item.Generator3,
+        item.Generator4,
+        item.Generator5
+      ),
+    Infinity
+  );
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Line Chart - Dots</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>CPI vs L1 Line Size</CardTitle>
+        <CardDescription>Dummy data for five memory generators</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
           <LineChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
+            data={cpiData}
+            margin={{ top: 0, right: 12, bottom: 0, left: 12 }}
           >
-            <CartesianGrid vertical={false} />
+            <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <XAxis
-              dataKey="month"
+              dataKey="lineSize"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) => value.slice(0, 3)}
             />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              domain={[1, datamax + 0.2]}
+            />
+            <Legend verticalAlign="top" align="right" iconType="plainline" />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <Line
+              dataKey="Generator1"
+              type="monotone"
+              stroke="var(--chart-1)"
+              strokeWidth={2}
+              dot={{ fill: "var(--chart-1)" }}
+              activeDot={{ r: 6 }}
             />
             <Line
-              dataKey="desktop"
-              type="natural"
-              stroke="var(--color-desktop)"
+              dataKey="Generator2"
+              type="monotone"
+              stroke="var(--chart-2)"
               strokeWidth={2}
-              dot={{
-                fill: "var(--color-desktop)",
-              }}
-              activeDot={{
-                r: 6,
-              }}
+              dot={{ fill: "var(--chart-2)" }}
+              activeDot={{ r: 6 }}
             />
             <Line
-              dataKey="mobile"
-              type="natural"
-              stroke="var(--color-mobile)"
+              dataKey="Generator3"
+              type="monotone"
+              stroke="var(--chart-3)"
               strokeWidth={2}
-              dot={{
-                fill: "var(--color-mobile)",
-              }}
-              activeDot={{
-                r: 6,
-              }}
+              dot={{ fill: "var(--chart-3)" }}
+              activeDot={{ r: 6 }}
+            />
+            <Line
+              dataKey="Generator4"
+              type="monotone"
+              stroke="var(--chart-4)"
+              strokeWidth={2}
+              dot={{ fill: "var(--chart-4)" }}
+              activeDot={{ r: 6 }}
+            />
+            <Line
+              dataKey="Generator5"
+              type="monotone"
+              stroke="var(--chart-5)"
+              strokeWidth={2}
+              dot={{ fill: "var(--chart-5)" }}
+              activeDot={{ r: 6 }}
             />
           </LineChart>
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="text-muted-foreground leading-none">
-          Showing total visitors for the last 6 months
+        <div className="font-medium">
+          Note: These are illustrative dummy values for CPI trends.
         </div>
       </CardFooter>
     </Card>

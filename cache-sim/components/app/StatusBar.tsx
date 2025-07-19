@@ -24,7 +24,7 @@ export default function StatusBar() {
           )}
           <p>{running ? "Stop" : "Run"}</p>
         </Button>
-        <RadioGroup
+        {/* <RadioGroup
           defaultValue="option-one"
           className="flex items-center space-x-1  rounded py-1 px-3"
         >
@@ -46,7 +46,7 @@ export default function StatusBar() {
             <RadioGroupItem value="option-four" id="option-four" />
             <Label htmlFor="option-four">128B</Label>
           </div>
-        </RadioGroup>
+        </RadioGroup> */}
         <GenCombobox />
         <Results />
         <div className="flex-1" />

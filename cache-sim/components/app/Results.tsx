@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { ChartLineDots } from "./Chart";
+import { CpiLineChart } from "./Chart";
 
 export default function Results() {
   const [open, setOpen] = useState(false);
@@ -33,7 +33,7 @@ export default function Results() {
               &times;
             </Button>
             <h1 className="text-2xl font-bold mb-4">Simulation Results</h1>
-            <ChartLineDots />
+            <CpiLineChart />
           </div>
         </div>
       )}
