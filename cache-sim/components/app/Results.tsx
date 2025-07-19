@@ -1,9 +1,10 @@
-import { useState } from "react";
+"use client";
+import { useMemory } from "../memorycontext";
 import { Button } from "../ui/button";
 import { CpiLineChart } from "./Chart";
 
 export default function Results() {
-  const [open, setOpen] = useState(false);
+  const { results, setResults } = useMemory();
 
   // Example data for charts
   const data = [
@@ -13,21 +14,13 @@ export default function Results() {
 
   return (
     <div>
-      <Button
-        variant="outline"
-        className="bg-blue-500 text-white px-4 py-2 rounded"
-        onClick={() => setOpen(!open)}
-        aria-label="Toggle Results"
-      >
-        Show Previous Results
-      </Button>
-      {open && (
+      {results && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-neutral-900 rounded-lg shadow-lg p-8  w-2xl relative">
             <Button
               variant="ghost"
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-              onClick={() => setOpen(false)}
+              onClick={() => setResults(false)}
               aria-label="Close"
             >
               &times;

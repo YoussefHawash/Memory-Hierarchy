@@ -1,10 +1,7 @@
 "use client";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Info, Play, StopCircle } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { Label } from "../ui/label";
-import { GenCombobox } from "./GenSel";
 import Results from "./Results";
 export default function StatusBar() {
   const [info, setInfo] = useState(false);
@@ -12,6 +9,7 @@ export default function StatusBar() {
   return (
     <>
       <div className="w-full h-12 bg-neutral-900 flex items-center gap-5 px-4 py-2">
+        <h1 className="text-lg font-bold">Memory Hierarchy Simulator</h1>
         <Button
           variant="outline"
           className="hover:cursor-pointer group relative"
@@ -22,32 +20,8 @@ export default function StatusBar() {
           ) : (
             <StopCircle size={20} color="red" />
           )}
-          <p>{running ? "Stop" : "Run"}</p>
+          <p>{running ? "Pause" : "Run Test"}</p>
         </Button>
-        {/* <RadioGroup
-          defaultValue="option-one"
-          className="flex items-center space-x-1  rounded py-1 px-3"
-        >
-          <p>Cache 1 Size : </p>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="option-one" id="option-one" />
-            <Label htmlFor="option-one">16B</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="option-two" id="option-two" />
-            <Label htmlFor="option-two">32B</Label>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="option-three" id="option-three" />
-            <Label htmlFor="option-three">64B</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="option-four" id="option-four" />
-            <Label htmlFor="option-four">128B</Label>
-          </div>
-        </RadioGroup> */}
-        <GenCombobox />
         <Results />
         <div className="flex-1" />
         <div

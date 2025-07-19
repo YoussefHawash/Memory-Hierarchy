@@ -1,6 +1,7 @@
 "use client";
 import {
   Background,
+  MiniMap,
   ReactFlow,
   addEdge,
   applyEdgeChanges,
@@ -84,7 +85,7 @@ export default function Flow() {
   );
 
   return (
-    <div className="w-screen h-[calc(100vh-48px)]">
+    <div className="w-screen flex-1 overflow-hidden">
       <ReactFlow
         colorMode="dark"
         nodes={nodes}
@@ -99,6 +100,7 @@ export default function Flow() {
         panOnScroll={false}
         panOnDrag={false}
         defaultEdgeOptions={{ animated: true, style: { stroke: "white" } }}
+        preventScrolling={true}
       >
         <Background size={0.5} bgColor="black" />
       </ReactFlow>

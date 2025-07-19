@@ -20,7 +20,7 @@ export function CPUNode({ data }: any) {
         isConnectable={false}
       />
       <div>
-        <Cpu color="grey" size={32} />
+        <Cpu color="grey" size={52} />
       </div>
     </div>
   );

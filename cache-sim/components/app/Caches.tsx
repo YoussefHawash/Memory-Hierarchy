@@ -14,7 +14,9 @@ export function CacheNode({ data }: any) {
 
   return (
     <>
-      <h1 className=" ml-1"> {data.label}</h1>
+      <div className="flex items-center mb-1">
+        <h1 className=" ml-1"> {data.label}</h1>
+      </div>
       <div className="flex flex-col relative  border-neutral-500 border-1 rounded shadow p-3 ">
         <div className="absolute inset-0 w-full h-full bg-neutral-900 opacity-90 -z-10" />
         <Handle
