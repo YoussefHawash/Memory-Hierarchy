@@ -1,3 +1,4 @@
+import { ChartLineDots } from "@/components/app/Chart";
 import Flow from "@/components/app/Flow";
 import StatusBar from "@/components/app/StatusBar";
 
@@ -6,6 +7,7 @@ export default function Home() {
     <>
       <StatusBar />
       <Flow />
+      {/* <ChartLineDots /> */}
     </>
   );
 }

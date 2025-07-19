@@ -20,6 +20,7 @@ const initialNodes = [
     type: "CPUNodeType",
     sourceHandle: "a",
     targetHandle: "b",
+    draggable: false,
   },
   {
     id: "n2",
@@ -83,7 +84,7 @@ export default function Flow() {
   );
 
   return (
-    <div className="w-screen h-[calc(100vh-40px)]">
+    <div className="w-screen h-[calc(100vh-48px)]">
       <ReactFlow
         colorMode="dark"
         nodes={nodes}

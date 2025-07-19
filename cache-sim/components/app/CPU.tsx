@@ -1,6 +1,6 @@
 // Node.tsx
 import { Handle, Position } from "@xyflow/react";
-import { Cpu, MemoryStick } from "lucide-react";
+import { Cpu } from "lucide-react";
 
 export function CPUNode({ data }: any) {
   return (
@@ -20,7 +20,7 @@ export function CPUNode({ data }: any) {
         isConnectable={false}
       />
       <div>
-        <Cpu />
+        <Cpu color="grey" size={32} />
       </div>
     </div>
   );
