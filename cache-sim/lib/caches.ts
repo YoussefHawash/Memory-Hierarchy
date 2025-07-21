@@ -6,9 +6,9 @@ import {
 } from "@/Types/cacheTypes";
 
 export const NUM_CYCLES = 1_000_000;
-export const DRAM_SIZE = 64 * 1024; // 64 GB or 2 ^ 36
-export const L1_CACHE_SIZE = 4 * 1024; // 16 KB or 2 ^ 14
-export const L2_CACHE_SIZE = 256 * 1024; // 128 KB or 2 ^ 17
+export const DRAM_SIZE = 64 * 1024 * 1024 * 1024; // 64 GB or 2 ^ 36
+export const L1_CACHE_SIZE = 16 * 1024; // 16 KB or 2 ^ 14
+export const L2_CACHE_SIZE = 128 * 1024; // 128 KB or 2 ^ 17
 export const L1_WAYS = 4;
 export const L2_WAYS = 8;
 export const L2_LINE_SIZE = 64;
@@ -32,7 +32,7 @@ export function AccessCacheL1(
   // Check if the cache line is already present
   for (let i = 0; i < Cache1[Index].length; i++) {
     if (Cache1[Index][i].valid && Cache1[Index][i].tag === Tag) {
-      if (isWrite) Cache1[Index][i].dirty = true;
+      Cache1[Index][i].dirty = Cache1[Index][i].dirty || isWrite;
       return cacheResType.HIT;
     }
   }
@@ -42,23 +42,23 @@ export function AccessCacheL1(
     if (!Cache1[Index][i].valid) {
       Cache1[Index][i].tag = Tag;
       Cache1[Index][i].valid = true;
-      if (isWrite) Cache1[Index][i].dirty = true;
+      Cache1[Index][i].dirty = Cache1[Index][i].dirty || isWrite;
       return cacheResType.MISS;
     }
   }
   // If no empty line, evict a random line
   const randInd = Math.floor(rand_() % Cache1[Index].length);
-  if (Cache1[Index][randInd].dirty && isWrite) {
+  if (Cache1[Index][randInd].dirty) {
     // Write back to L2 if dirty
     // make an address to access L2 cache
     const writeBackAddr =
       (Cache1[Index][randInd].tag * Cache1.length + Index) * lineSize;
-    AccessCacheL2(writeBackAddr, lineSize, true);
+    AccessCacheL2(writeBackAddr, L2_LINE_SIZE, true);
     cycles += 10;
   }
   Cache1[Index][randInd].tag = Tag;
   Cache1[Index][randInd].valid = true;
-  if (isWrite) Cache1[Index][randInd].dirty = true;
+  Cache1[Index][randInd].dirty = isWrite; // Mark as dirty if write
   return cacheResType.MISS;
 }
 export function AccessCacheL2(
@@ -71,7 +71,7 @@ export function AccessCacheL2(
   // Check if the cache line is already present
   for (let i = 0; i < Cache2[Index].length; i++) {
     if (Cache2[Index][i].valid && Cache2[Index][i].tag === Tag) {
-      if (isWrite) Cache2[Index][i].dirty = true; // Mark as dirty on write
+      Cache2[Index][i].dirty = Cache2[Index][i].dirty || isWrite;
       return cacheResType.HIT;
     }
   }
@@ -80,18 +80,18 @@ export function AccessCacheL2(
     if (!Cache2[Index][i].valid) {
       Cache2[Index][i].tag = Tag;
       Cache2[Index][i].valid = true;
-      if (isWrite) Cache2[Index][i].dirty = true; // Mark as dirty on write
+      Cache2[Index][i].dirty = Cache2[Index][i].dirty || isWrite;
       return cacheResType.MISS;
     }
   }
   // If no empty line, evict a random line
   const randInd = Math.floor(rand_() % Cache2[Index].length);
-  if (Cache2[Index][randInd].dirty && isWrite) {
+  if (Cache2[Index][randInd].dirty) {
     cycles += 50; // Write back to Mem if dirty
   }
   Cache2[Index][randInd].tag = Tag;
   Cache2[Index][randInd].valid = true;
-  if (isWrite) Cache2[Index][randInd].dirty = true; // Mark as dirty if write
+  Cache2[Index][randInd].dirty = isWrite; // Mark as dirty if write
 
   return cacheResType.MISS;
 }
