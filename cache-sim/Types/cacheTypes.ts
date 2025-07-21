@@ -26,4 +26,7 @@ export interface FinalResults {
   L1_Miss: number;
   L2_Hit: number;
   L2_Miss: number;
+
+  L1_MissRate: number;
+  L2_MissRate: number;
 }

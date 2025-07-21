@@ -30,6 +30,17 @@ export default function StatusBar() {
                   L1_Miss: Number(simRes.l1_miss),
                   L2_Hit: Number(simRes.l2_hit),
                   L2_Miss: Number(simRes.l2_miss),
+
+                  L1_MissRate: Number(
+                    (simRes.l1_miss / (simRes.l1_hit + simRes.l1_miss)).toFixed(
+                      4
+                    )
+                  ),
+                  L2_MissRate: Number(
+                    (simRes.l2_miss / (simRes.l2_hit + simRes.l2_miss)).toFixed(
+                      4
+                    )
+                  ),
                 });
                 const l1MissRate =
                   simRes.l1_miss / (simRes.l1_hit + simRes.l1_miss);
@@ -37,6 +48,7 @@ export default function StatusBar() {
                   simRes.l2_miss / (simRes.l2_hit + simRes.l2_miss);
               }
             }
+            res.sort((a, b) => a.Generator - b.Generator);
             console.table(res);
 
             setResults(res);

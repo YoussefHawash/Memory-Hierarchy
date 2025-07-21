@@ -99,6 +99,9 @@ export function Simulator(lineSize: number, generator: number) {
   reset();
   let l1_hit = 0;
   let l2_hit = 0;
+  let l1_miss = 0;
+  let l2_miss = 0;
+
   //Params
   const cache1_lineCount = L1_CACHE_SIZE / (lineSize * L1_WAYS);
   const cache2_lineCount = L2_CACHE_SIZE / (L2_LINE_SIZE * L2_WAYS);
@@ -133,14 +136,15 @@ export function Simulator(lineSize: number, generator: number) {
         AccessCacheL2(addr, L2_LINE_SIZE, memAccess === memAccessType.Write)
       ) {
         l2_hit++;
+        l1_miss++;
         cycles += 10 + 1;
       } else {
+        l1_miss++;
+        l2_miss++;
         cycles += 50 + 1 + 10; // Miss in both caches
       }
     } else cycles++;
   }
-  const l1_miss = NUM_CYCLES - l1_hit;
-  const l2_miss = NUM_CYCLES - l2_hit;
   const cpi = cycles / NUM_CYCLES;
   const result: SimulationResult = {
     l1_hit,
