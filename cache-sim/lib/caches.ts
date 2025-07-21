@@ -139,11 +139,13 @@ export function Simulator(lineSize: number, generator: number) {
             ) {
                 l2_hit++;
                 l1_miss++;
-                cycles += 10 + 1;
+                if (memAccess === memAccessType.Write) cycles += 10 + 1;
+                else cycles += 10 + 1 + 1; // Read hit in L2
             } else {
                 l1_miss++;
                 l2_miss++;
-                cycles += 50 + 1 + 10; // Miss in both caches
+               if (memAccess === memAccessType.Write) cycles += 50 + 1+10;
+                else cycles += 50 +10+ 1 + 1; // Read hit in L2
             }
         } else cycles++;
     }
