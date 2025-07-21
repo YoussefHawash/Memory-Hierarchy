@@ -32,7 +32,7 @@ export function AccessCacheL1(
   // Check if the cache line is already present
   for (let i = 0; i < Cache1[Index].length; i++) {
     if (Cache1[Index][i].valid && Cache1[Index][i].tag === Tag) {
-      Cache1[Index][i].dirty = Cache1[Index][i].dirty || isWrite;
+      Cache1[Index][i].dirty = isWrite;
       return cacheResType.HIT;
     }
   }
@@ -42,7 +42,7 @@ export function AccessCacheL1(
     if (!Cache1[Index][i].valid) {
       Cache1[Index][i].tag = Tag;
       Cache1[Index][i].valid = true;
-      Cache1[Index][i].dirty = Cache1[Index][i].dirty || isWrite;
+      Cache1[Index][i].dirty = isWrite;
       return cacheResType.MISS;
     }
   }
@@ -71,7 +71,7 @@ export function AccessCacheL2(
   // Check if the cache line is already present
   for (let i = 0; i < Cache2[Index].length; i++) {
     if (Cache2[Index][i].valid && Cache2[Index][i].tag === Tag) {
-      Cache2[Index][i].dirty = Cache2[Index][i].dirty || isWrite;
+      Cache2[Index][i].dirty = isWrite;
       return cacheResType.HIT;
     }
   }
@@ -80,7 +80,7 @@ export function AccessCacheL2(
     if (!Cache2[Index][i].valid) {
       Cache2[Index][i].tag = Tag;
       Cache2[Index][i].valid = true;
-      Cache2[Index][i].dirty = Cache2[Index][i].dirty || isWrite;
+      Cache2[Index][i].dirty = isWrite;
       return cacheResType.MISS;
     }
   }
@@ -191,7 +191,7 @@ export function memGen1(): number {
   return memGen1_staticAddr++ % DRAM_SIZE;
 }
 export function memGen2(): number {
-  // Random access within 24KB,
+  // Random access within 24KB
   return rand_() % (24 * 1024);
 }
 export function memGen3(): number {
