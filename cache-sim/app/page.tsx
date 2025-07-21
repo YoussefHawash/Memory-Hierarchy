@@ -5,7 +5,7 @@ import { useMemory } from "@/components/memorycontext";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  const { results, setResults } = useMemory();
+  const { resultsDialog: results, setResultsDialog: setResults } = useMemory();
   return (
     <main className="flex flex-col h-screen">
       <StatusBar />

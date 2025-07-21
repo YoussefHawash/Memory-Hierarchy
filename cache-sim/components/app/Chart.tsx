@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemory } from "@/components/memorycontext";
+import { Button } from "@/components/ui/button"; // ← import Button
 import {
   Card,
   CardContent,
@@ -14,88 +16,50 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import React from "react";
 import { CartesianGrid, Legend, Line, LineChart, XAxis, YAxis } from "recharts";
 
-export const description =
-  "CPI vs L1 Line Size for different memory generators";
-
-const cpiData = [
-  {
-    lineSize: "16 B",
-    Generator1: 1.45,
-    Generator2: 1.2,
-    Generator3: 1.8,
-    Generator4: 1.25,
-    Generator5: 1.6,
-  },
-  {
-    lineSize: "32 B",
-    Generator1: 1.25,
-    Generator2: 1.12,
-    Generator3: 1.75,
-    Generator4: 1.18,
-    Generator5: 1.45,
-  },
-  {
-    lineSize: "64 B",
-    Generator1: 1.18,
-    Generator2: 1.09,
-    Generator3: 1.73,
-    Generator4: 1.14,
-    Generator5: 1.35,
-  },
-  {
-    lineSize: "128 B",
-    Generator1: 1.17,
-    Generator2: 1.09,
-    Generator3: 1.71,
-    Generator4: 1.13,
-    Generator5: 1.3,
-  },
-];
-
-// Map each generator to its label & CSS‑driven color
-const chartConfig = {
-  Generator1: { label: "Generator1", color: "var(--chart-1)" },
-  Generator2: { label: "Generator2", color: "var(--chart-2)" },
-  Generator3: { label: "Generator3", color: "var(--chart-3)" },
-  Generator4: { label: "Generator4", color: "var(--chart-4)" },
-  Generator5: { label: "Generator5", color: "var(--chart-5)" },
-} satisfies ChartConfig;
+type ChartConfigEntry = { label: string; color: string };
+const chartConfig: Record<string, ChartConfigEntry> = {
+  Generator1: { label: "1", color: "var(--chart-1)" },
+  Generator2: { label: "2", color: "var(--chart-2)" },
+  Generator3: { label: "3", color: "var(--chart-3)" },
+  Generator4: { label: "4", color: "var(--chart-4)" },
+  Generator5: { label: "5", color: "var(--chart-5)" },
+};
 
 export function CpiLineChart() {
-  const datamax = cpiData.reduce(
-    (max, item) =>
-      Math.max(
-        max,
-        item.Generator1,
-        item.Generator2,
-        item.Generator3,
-        item.Generator4,
-        item.Generator5
-      ),
+  const { results } = useMemory();
 
-    0
-  );
-  const datamin = cpiData.reduce(
-    (min, item) =>
-      Math.min(
-        min,
-        item.Generator1,
-        item.Generator2,
-        item.Generator3,
-        item.Generator4,
-        item.Generator5
-      ),
-    Infinity
-  );
+  // 1) transform raw stats into recharts‑friendly array
+  const cpiData = React.useMemo(() => {
+    const grouped = results.reduce((acc, { CPI, Generator, LineSize }) => {
+      const key = `${LineSize} B`;
+      acc[key] ||= { lineSize: key } as Record<string, any>;
+      acc[key][`Generator${Generator}`] = CPI;
+      return acc;
+    }, {} as Record<string, any>);
+
+    return Object.values(grouped);
+  }, [results]);
+
+  // 3) state to track which series are visible
+  const allKeys = Object.keys(chartConfig);
+  const [visible, setVisible] = React.useState<string[]>([...allKeys]);
+
+  const toggle = (key: string) =>
+    setVisible((v) =>
+      v.includes(key) ? v.filter((k) => k !== key) : [...v, key]
+    );
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>CPI vs L1 Line Size</CardTitle>
-        <CardDescription>Dummy data for five memory generators</CardDescription>
+        <CardTitle>
+          CPI vs L1 Line Size for different memory generators
+        </CardTitle>
       </CardHeader>
+
       <CardContent>
         <ChartContainer config={chartConfig}>
           <LineChart
@@ -109,58 +73,42 @@ export function CpiLineChart() {
               axisLine={false}
               tickMargin={8}
             />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              domain={[1, datamax + 0.2]}
-            />
+            <YAxis tickLine={false} axisLine={false} tickMargin={8} />
             <Legend verticalAlign="top" align="right" iconType="plainline" />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <Line
-              dataKey="Generator1"
-              type="monotone"
-              stroke="var(--chart-1)"
-              strokeWidth={2}
-              dot={{ fill: "var(--chart-1)" }}
-              activeDot={{ r: 6 }}
-            />
-            <Line
-              dataKey="Generator2"
-              type="monotone"
-              stroke="var(--chart-2)"
-              strokeWidth={2}
-              dot={{ fill: "var(--chart-2)" }}
-              activeDot={{ r: 6 }}
-            />
-            <Line
-              dataKey="Generator3"
-              type="monotone"
-              stroke="var(--chart-3)"
-              strokeWidth={2}
-              dot={{ fill: "var(--chart-3)" }}
-              activeDot={{ r: 6 }}
-            />
-            <Line
-              dataKey="Generator4"
-              type="monotone"
-              stroke="var(--chart-4)"
-              strokeWidth={2}
-              dot={{ fill: "var(--chart-4)" }}
-              activeDot={{ r: 6 }}
-            />
-            <Line
-              dataKey="Generator5"
-              type="monotone"
-              stroke="var(--chart-5)"
-              strokeWidth={2}
-              dot={{ fill: "var(--chart-5)" }}
-              activeDot={{ r: 6 }}
-            />
+
+            {/* 5) Only render Lines for visible generators */}
+            {allKeys
+              .filter((key) => visible.includes(key))
+              .map((key) => (
+                <Line
+                  key={key}
+                  dataKey={key}
+                  type="monotone"
+                  stroke={chartConfig[key].color}
+                  strokeWidth={2}
+                  dot={{ fill: chartConfig[key].color }}
+                  activeDot={{ r: 6 }}
+                />
+              ))}
           </LineChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm"></CardFooter>
+
+      <CardFooter>
+        <div className="flex flex-wrap gap-2 mx-auto">
+          {allKeys.map((key) => (
+            <Button
+              key={key}
+              size="sm"
+              variant={visible.includes(key) ? "default" : "outline"}
+              onClick={() => toggle(key)}
+            >
+              {chartConfig[key].label}
+            </Button>
+          ))}
+        </div>
+      </CardFooter>
     </Card>
   );
 }

@@ -1,18 +1,29 @@
 "use client";
 import React, { createContext, ReactNode, useContext, useState } from "react";
+import { Results } from "./app/StatusBar";
 
 type MemoryState = {
-  results: boolean;
-  setResults: (value: boolean) => void;
+  results: Results[];
+  setResults: (stats: Results[]) => void;
+  resultsDialog: boolean;
+  setResultsDialog: (value: boolean) => void;
 };
 
 const MemoryContext = createContext<MemoryState | undefined>(undefined);
 
 export const MemoryProvider = ({ children }: { children: ReactNode }) => {
-  const [results, setResults] = useState<boolean>(false);
+  const [resultsDialog, setResultsDialog] = useState<boolean>(false);
+  const [results, setResults] = useState<Results[]>([]);
 
   return (
-    <MemoryContext.Provider value={{ results, setResults }}>
+    <MemoryContext.Provider
+      value={{
+        results,
+        setResults,
+        resultsDialog,
+        setResultsDialog,
+      }}
+    >
       {children}
     </MemoryContext.Provider>
   );

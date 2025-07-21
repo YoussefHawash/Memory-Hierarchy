@@ -1,126 +1,205 @@
+import {
+  CacheLine,
+  cacheResType,
+  memAccessType,
+  SimulationResult,
+} from "@/Types/cacheTypes";
+
 export const NUM_CYCLES = 1_000_000;
 export const DRAM_SIZE = 64 * 1024; // 64 GB or 2 ^ 36
 export const L1_CACHE_SIZE = 4 * 1024; // 16 KB or 2 ^ 14
 export const L2_CACHE_SIZE = 256 * 1024; // 128 KB or 2 ^ 17
-export const L1_WAYS = 2;
+export const L1_WAYS = 4;
 export const L2_WAYS = 8;
-
-export enum cacheResType {
-    MISS = 0,
-    HIT = 1,
-}
-export interface CacheLine {
-    tag: number;
-    valid: boolean;
-    dirty: boolean;
-}
+export const L2_LINE_SIZE = 64;
 let m_w = 0xababab55; // must not be zero, nor 0x464fffff
 let m_z = 0x05080902; // must not be zero, nor 0x9068ffff
+let cycles = 0;
+let Cache1: CacheLine[][] = [];
+let Cache2: CacheLine[][] = [];
+let memGen1_staticAddr = 0;
+let memGen4_staticAddr = 0;
+let memGen5_staticAddr = 0;
+
+export function AccessCacheL1(
+  addr: number,
+  lineSize: number,
+  isWrite: boolean = false
+): cacheResType {
+  const offset = addr % lineSize;
+  const Index = Math.floor((addr / lineSize) % Cache1.length);
+  const Tag = Math.floor(addr / lineSize / Cache1.length);
+  // Check if the cache line is already present
+  for (let i = 0; i < Cache1[Index].length; i++) {
+    if (Cache1[Index][i].valid && Cache1[Index][i].tag === Tag) {
+      if (isWrite) Cache1[Index][i].dirty = true;
+      return cacheResType.HIT;
+    }
+  }
+
+  // If not found, check for an empty line
+  for (let i = 0; i < Cache1[Index].length; i++) {
+    if (!Cache1[Index][i].valid) {
+      Cache1[Index][i].tag = Tag;
+      Cache1[Index][i].valid = true;
+      if (isWrite) Cache1[Index][i].dirty = true;
+      return cacheResType.MISS;
+    }
+  }
+  // If no empty line, evict a random line
+  const randInd = Math.floor(rand_() % Cache1[Index].length);
+  if (Cache1[Index][randInd].dirty && isWrite) {
+    // Write back to L2 if dirty
+    // make an address to access L2 cache
+    const writeBackAddr =
+      (Cache1[Index][randInd].tag * Cache1.length + Index) * lineSize;
+    AccessCacheL2(writeBackAddr, lineSize, true);
+    cycles += 10;
+  }
+  Cache1[Index][randInd].tag = Tag;
+  Cache1[Index][randInd].valid = true;
+  if (isWrite) Cache1[Index][randInd].dirty = true;
+  return cacheResType.MISS;
+}
+export function AccessCacheL2(
+  addr: number,
+  lineSize: number,
+  isWrite: boolean = false
+): cacheResType {
+  const Index = Math.floor((addr / lineSize) % Cache2.length);
+  const Tag = Math.floor(addr / lineSize / Cache2.length);
+  // Check if the cache line is already present
+  for (let i = 0; i < Cache2[Index].length; i++) {
+    if (Cache2[Index][i].valid && Cache2[Index][i].tag === Tag) {
+      if (isWrite) Cache2[Index][i].dirty = true; // Mark as dirty on write
+      return cacheResType.HIT;
+    }
+  }
+  // If not found, check for an empty line
+  for (let i = 0; i < Cache2[Index].length; i++) {
+    if (!Cache2[Index][i].valid) {
+      Cache2[Index][i].tag = Tag;
+      Cache2[Index][i].valid = true;
+      if (isWrite) Cache2[Index][i].dirty = true; // Mark as dirty on write
+      return cacheResType.MISS;
+    }
+  }
+  // If no empty line, evict a random line
+  const randInd = Math.floor(rand_() % Cache2[Index].length);
+  if (Cache2[Index][randInd].dirty && isWrite) {
+    cycles += 50; // Write back to Mem if dirty
+  }
+  Cache2[Index][randInd].tag = Tag;
+  Cache2[Index][randInd].valid = true;
+  if (isWrite) Cache2[Index][randInd].dirty = true; // Mark as dirty if write
+
+  return cacheResType.MISS;
+}
+export function Simulator(lineSize: number, generator: number) {
+  reset();
+  let l1_hit = 0;
+  let l2_hit = 0;
+  //Params
+  const cache1_lineCount = L1_CACHE_SIZE / (lineSize * L1_WAYS);
+  const cache2_lineCount = L2_CACHE_SIZE / (L2_LINE_SIZE * L2_WAYS);
+  // initiliaze the caches
+  Cache1 = Array.from({ length: cache1_lineCount }, () =>
+    Array.from({ length: L1_WAYS }, () => ({
+      tag: 0,
+      valid: false,
+      dirty: false,
+    }))
+  );
+  Cache2 = Array.from({ length: cache2_lineCount }, () =>
+    Array.from({ length: L2_WAYS }, () => ({
+      tag: 0,
+      valid: false,
+      dirty: false,
+    }))
+  );
+  // Running the simulation
+  for (let i = 0; i < NUM_CYCLES; i++) {
+    let memAccess = 0;
+    const p = Math.random(); // random value between 0 and 1
+    if (p <= 0.35) {
+      const addr = getAddrByGenType(generator);
+      const rdwr = Math.random();
+      if (rdwr < 0.5) memAccess = memAccessType.Read;
+      else memAccess = memAccessType.Write;
+      if (AccessCacheL1(addr, lineSize, memAccess === memAccessType.Write)) {
+        l1_hit++;
+        cycles++;
+      } else if (
+        AccessCacheL2(addr, L2_LINE_SIZE, memAccess === memAccessType.Write)
+      ) {
+        l2_hit++;
+        cycles += 10 + 1;
+      } else {
+        cycles += 50 + 1 + 10; // Miss in both caches
+      }
+    } else cycles++;
+  }
+  const l1_miss = NUM_CYCLES - l1_hit;
+  const l2_miss = NUM_CYCLES - l2_hit;
+  const cpi = cycles / NUM_CYCLES;
+  const result: SimulationResult = {
+    l1_hit,
+    l1_miss,
+    l2_hit,
+    l2_miss,
+    cpi,
+  };
+  return result;
+}
+
+export function reset() {
+  Cache1 = [];
+  Cache2 = [];
+  cycles = 0;
+  memGen1_staticAddr = 0;
+  memGen4_staticAddr = 0;
+  memGen5_staticAddr = 0;
+}
+export function getAddrByGenType(genType: number): number {
+  switch (genType) {
+    case 1:
+      return memGen1();
+    case 2:
+      return memGen2();
+    case 3:
+      return memGen3();
+    case 4:
+      return memGen4();
+    case 5:
+      return memGen5();
+    default:
+      return 0;
+  }
+}
 
 export function rand_(): number {
-    m_z = (36969 * (m_z & 0xffff) + (m_z >>> 16)) >>> 0;
-    m_w = (18000 * (m_w & 0xffff) + (m_w >>> 16)) >>> 0;
-    return ((m_z << 16) + m_w) >>> 0; // 32-bit unsigned result
+  m_z = (36969 * (m_z & 0xffff) + (m_z >>> 16)) >>> 0;
+  m_w = (18000 * (m_w & 0xffff) + (m_w >>> 16)) >>> 0;
+  return ((m_z << 16) + m_w) >>> 0; // 32-bit unsigned result
 }
-
 export function memGen1(): number {
-    // Sequential access, wraps around DRAM_SIZE
-    let staticAddr = (function () {
-        let addr = 0;
-        return () => addr++ % DRAM_SIZE;
-    })();
-    return staticAddr();
+  // Sequential access, wraps around DRAM_SIZE
+  return memGen1_staticAddr++ % DRAM_SIZE;
 }
-
 export function memGen2(): number {
-    // Random access within 24KB
-    return rand_() % (24 * 1024);
+  // Random access within 24KB,
+  return rand_() % (24 * 1024);
 }
-
 export function memGen3(): number {
-    // Random access within DRAM_SIZE
-    return rand_() % DRAM_SIZE;
+  // Random access within DRAM_SIZE, but with a static address for sequential wrap
+  return rand_() % DRAM_SIZE;
 }
-
 export function memGen4(): number {
-    // Sequential access, wraps around 4KB
-    let staticAddr = (function () {
-        let addr = 0;
-        return () => addr++ % (4 * 1024);
-    })();
-    return staticAddr();
+  // Sequential access, wraps around 4KB
+  return memGen4_staticAddr++ % (4 * 1024);
 }
-
 export function memGen5(): number {
-    // Strided access, stride of 32, wraps around 1MB
-    let staticAddr = (function () {
-        let addr = 0;
-        return () => (addr += 32) % (64 * 16 * 1024);
-    })();
-    return staticAddr();
-}
-
-//Direct Mapped Cache Simulator
-export function setAssociativeSim(
-    addr: number,
-    lineSize: number,
-    cache: CacheLine[][]
-): cacheResType {
-    const Index = (addr / lineSize) % cache.length;
-    const Tag = addr / lineSize / cache.length;
-    for (let i = 0; i < cache[Index].length; i++) {
-        if (cache[Index][i].valid) {
-            if (cache[Index][i].tag == Tag) return cacheResType.HIT;
-        }
-    }
-    for (let i = 0; i < cache[Index].length; i++) {
-        if (!cache[Index][i].valid) {
-            cache[Index][i].tag = Tag;
-            cache[Index][i].valid = true;
-            return cacheResType.MISS;
-        }
-    }
-    const randInd = Math.floor(rand_() % cache[Index].length);
-    cache[Index][randInd].tag = Tag;
-    cache[Index][randInd].valid = true;
-    return cacheResType.MISS;
-}
-export function main(lineSize: number) {
-    //Params
-    const L1_LineSize = lineSize;
-    const cache1_lineCount = L1_CACHE_SIZE / (L1_LineSize * 4);
-    const cache2_lineCount = L2_CACHE_SIZE / (64 * 8);
-    // initiliaze the caches
-    const Cache1: CacheLine[][] = Array.from({ length: cache1_lineCount }, () =>
-        Array.from({ length: 4 }, () => ({
-            tag: 0,
-            valid: false,
-            dirty: false,
-        }))
-    );
-    const Cache2: CacheLine[][] = Array.from({ length: cache2_lineCount }, () =>
-        Array.from({ length: 8 }, () => ({
-            tag: 0,
-            valid: false,
-            dirty: false,
-        }))
-    );
-}
-export function Simulator1(lineSize: number, cache: CacheLine[][]) {
-    let cycles = 0;
-    for (let i = 0; i < NUM_CYCLES; i++) {
-        let memAccessType = 0;
-        const p = Math.random(); // random value between 0 and 1
-        if (p <= 0.35) {
-            const addr = memGen1();
-            const rdwr = Math.random();
-            if (rdwr < 0.5) memAccessType = 0;
-            else memAccessType = 1;
-            if (setAssociativeSim(addr, lineSize, cache)) cycles++;
-            else {
-                cycles += 1;
-            }
-        } else cycles++;
-    }
-    return cycles / NUM_CYCLES;
+  // Strided access, stride of 32, wraps around 1MB
+  memGen5_staticAddr = (memGen5_staticAddr + 32) % (1024 * 1024);
+  return memGen5_staticAddr;
 }

@@ -1,25 +1,50 @@
 "use client";
+import { Simulator } from "@/lib/caches";
+import { FinalResults } from "@/Types/cacheTypes";
 import { Info, Play, StopCircle } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useMemory } from "../memorycontext";
 import { Button } from "../ui/button";
 import Results from "./Results";
+
 export default function StatusBar() {
+  const { setResults, setResultsDialog } = useMemory();
   const [info, setInfo] = useState(false);
-  const [running, setRunning] = useState(false);
   return (
     <>
       <div className="w-full h-12 bg-neutral-900 flex items-center gap-5 px-4 py-2">
         <Button
           variant="outline"
           className="hover:cursor-pointer group relative"
-          onClick={() => setRunning(!running)}
+          onClick={() => {
+            const res: FinalResults[] = [];
+            for (let i = 16; i < 256; i *= 2) {
+              for (let j = 1; j < 6; j++) {
+                const simRes = Simulator(i, j);
+
+                res.push({
+                  CPI: Number(simRes.cpi.toFixed(2)),
+                  Generator: j,
+                  LineSize: i,
+                  L1_Hit: Number(simRes.l1_hit),
+                  L1_Miss: Number(simRes.l1_miss),
+                  L2_Hit: Number(simRes.l2_hit),
+                  L2_Miss: Number(simRes.l2_miss),
+                });
+                const l1MissRate =
+                  simRes.l1_miss / (simRes.l1_hit + simRes.l1_miss);
+                const l2MissRate =
+                  simRes.l2_miss / (simRes.l2_hit + simRes.l2_miss);
+              }
+            }
+            console.table(res);
+
+            setResults(res);
+            setResultsDialog(true);
+          }}
         >
-          {!running ? (
-            <Play size={20} color="green" />
-          ) : (
-            <StopCircle size={20} color="red" />
-          )}
-          <p>{running ? "Pause" : "Run Test"}</p>
+          <Play size={20} color="green" />
+          <p>Run Test</p>
         </Button>
         <Results />
         <div className="flex-1" />
