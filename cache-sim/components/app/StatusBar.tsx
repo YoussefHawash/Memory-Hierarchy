@@ -30,6 +30,8 @@ export default function StatusBar() {
                   L1_Miss: Number(simRes.l1_miss),
                   L2_Hit: Number(simRes.l2_hit),
                   L2_Miss: Number(simRes.l2_miss),
+                  L1_WriteBacks: simRes.l1wb,
+                  L2_WriteBacks: simRes.l2wb,
 
                   L1_MissRate: Number(
                     (simRes.l1_miss / (simRes.l1_hit + simRes.l1_miss)).toFixed(

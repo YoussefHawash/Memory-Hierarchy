@@ -17,6 +17,8 @@ export interface SimulationResult {
   l2_hit: number;
   l2_miss: number;
   cpi: number;
+  l1wb: number;
+  l2wb: number;
 }
 export interface FinalResults {
   CPI: number;
@@ -26,6 +28,8 @@ export interface FinalResults {
   L1_Miss: number;
   L2_Hit: number;
   L2_Miss: number;
+  L1_WriteBacks: number;
+  L2_WriteBacks: number;
 
   L1_MissRate: number;
   L2_MissRate: number;
