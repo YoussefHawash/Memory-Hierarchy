@@ -21,7 +21,6 @@ export default function StatusBar() {
             for (let i = 16; i < 256; i *= 2) {
               for (let j = 1; j < 6; j++) {
                 const simRes = Simulator(i, j);
-
                 res.push({
                   CPI: Number(simRes.cpi.toFixed(2)),
                   Generator: j,
@@ -44,10 +43,6 @@ export default function StatusBar() {
                     )
                   ),
                 });
-                const l1MissRate =
-                  simRes.l1_miss / (simRes.l1_hit + simRes.l1_miss);
-                const l2MissRate =
-                  simRes.l2_miss / (simRes.l2_hit + simRes.l2_miss);
               }
             }
             res.sort((a, b) => a.Generator - b.Generator);

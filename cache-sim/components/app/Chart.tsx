@@ -84,7 +84,7 @@ export function CpiLineChart() {
                 <Line
                   key={key}
                   dataKey={key}
-                  type="monotone"
+                  type="linear"
                   stroke={chartConfig[key].color}
                   strokeWidth={2}
                   dot={{ fill: chartConfig[key].color }}

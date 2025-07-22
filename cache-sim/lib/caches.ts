@@ -117,9 +117,6 @@ export function Simulator(lineSize: number, generator: number) {
   //Params
   const cache1_lineCount = L1_CACHE_SIZE / (lineSize * L1_WAYS);
   const cache2_lineCount = L2_CACHE_SIZE / (L2_LINE_SIZE * L2_WAYS);
-  console.log("Gen", generator, " lineSize ", lineSize);
-  console.log("cache1lines:", cache1_lineCount);
-  console.log("cache2lines:", cache2_lineCount);
 
   // initiliaze the caches
   Cache1 = Array.from({ length: cache1_lineCount }, () =>
